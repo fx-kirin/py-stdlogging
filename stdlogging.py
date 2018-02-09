@@ -23,10 +23,13 @@ class StreamToLogger(object):
         self.linebuf = ''
 
     def write(self, buf):
-        for line in buf.splitlines():
-            line = line.rstrip()
-            if line != '':
-                self.logger.log(self.log_level, line)
+        if buf != '':
+            if "\n" in buf:
+                self.linebuf += buf
+                self.logger.log(self.log_level, self.linebuf.rstrip())
+                self.linebuf = ''
+            else:
+                self.linebuf += buf
 
 def enable(stdout_loglevel=logging.INFO, stderr_loglevel=logging.ERROR):
     stdout_logger = logging.getLogger('STDOUT')
