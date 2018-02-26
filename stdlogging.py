@@ -30,6 +30,10 @@ class StreamToLogger(object):
                 self.linebuf = ''
             else:
                 self.linebuf += buf
+    
+    def flush(self):
+        self.logger.log(self.log_level, self.linebuf.rstrip())
+        self.linebuf = ''
 
 def enable(stdout=False, stderror=True, stdout_loglevel=logging.INFO, stderr_loglevel=logging.ERROR):
     if stdout:

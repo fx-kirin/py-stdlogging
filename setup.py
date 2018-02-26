@@ -16,12 +16,12 @@ except ImportError:
     from distutils.core import setup, Extension
 setup(
     name='stdlogging',
-    version='0.11',
-    description='',
+    version='0.13',
+    description='Capture stdout and stderr output by logging',
     long_description='',
     author='fx-kirin',
     author_email='ono.kirin@gmail.com',
-    url='',
+    url='https://github.com/fx-kirin/py-stdlogging',
     download_url='',
     packages=['']
 )
