@@ -31,11 +31,13 @@ class StreamToLogger(object):
             else:
                 self.linebuf += buf
 
-def enable(stdout_loglevel=logging.INFO, stderr_loglevel=logging.ERROR):
-    stdout_logger = logging.getLogger('STDOUT')
-    sl = StreamToLogger(stdout_logger, stdout_loglevel)
-    sys.stdout = sl
+def enable(stdout=False, stderror=True, stdout_loglevel=logging.INFO, stderr_loglevel=logging.ERROR):
+    if stdout:
+        stdout_logger = logging.getLogger('STDOUT')
+        sl = StreamToLogger(stdout_logger, stdout_loglevel)
+        sys.stdout = sl
 
-    stderr_logger = logging.getLogger('STDERR')
-    sl = StreamToLogger(stderr_logger, stderr_loglevel)
-    sys.stderr = sl
+    if stderror:
+        stderr_logger = logging.getLogger('STDERR')
+        sl = StreamToLogger(stderr_logger, stderr_loglevel)
+        sys.stderr = sl
