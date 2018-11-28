@@ -16,7 +16,7 @@ except ImportError:
     from distutils.core import setup, Extension
 setup(
     name='stdlogging',
-    version='0.13',
+    version='0.15',
     description='Capture stdout and stderr output by logging',
     long_description='',
     author='fx-kirin',
