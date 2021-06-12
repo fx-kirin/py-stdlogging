@@ -14,40 +14,69 @@ import logging
 import sys
 
 
-class StreamToLogger(object):
+def _validate_param(d, param_name):
+    if d is None:
+        raise ValueError(f"Expected '{param_name} param not found")
+
+class StreamToLogger:
     """
-    Fake file-like stream object that redirects writes to a logger instance.
+    This is adapter class from any stream-like object to logging.Logger.
     """
 
-    def __init__(self, logger, default_output, log_level=logging.INFO, only_on_error=True):
-        self.logger = logger
-        self.log_level = log_level
-        self.default_output = default_output
-        self.linebuf = ''
-        self.only_on_error = only_on_error
+    def __init__(self, **kwargs):
+        """
+        It is recommended to use package-level initStream() function and not this method directly.
 
-    def write(self, buf):
-        if buf != '':
-            self.linebuf += buf
+        :param logger: Required. Standard Python's Logger or any Logger-like object.
+        :param stream: Required. sys.stderr, sys.stdout or any other stream-like object.
+        :param log_level: Optional. If not supplied, logging.DEBUG will be used.
+        """
+
+        _validate_param(kwargs, 'logger')
+        _validate_param(kwargs, 'log_level')
+        _validate_param(kwargs, 'stream')
+
+        self.logger = kwargs.pop('logger')
+        self.log_level = kwargs.pop('log_level', logging.DEBUG)
+        self.stream = kwargs.pop('stream')
+
+    def write(self, lines):
+        if lines:
+            lines = lines+'\n'
+            for line in lines.split('\n'):
+                if line:
+                    self.logger.log(self.log_level, line.rstrip())
 
     def flush(self):
-        if self.only_on_error and 'Traceback (most recent call last)' in self.linebuf:
-            for buf in self.linebuf.split('\n'):
-                if buf != '':
-                    self.logger.log(self.log_level, buf.rstrip())
-        else:
-            self.default_output.write(self.linebuf)
-            self.default_output.flush()
-        self.linebuf = ''
+        self.stream.flush()
 
 
-def enable(stdout=False, stderror=True, stdout_loglevel=logging.INFO, stderr_loglevel=logging.ERROR):
-    if stdout:
-        stdout_logger = logging.getLogger('STDOUT')
-        sl = StreamToLogger(stdout_logger, sys.stdout, stdout_loglevel)
-        sys.stdout = sl
 
-    if stderror:
-        stderr_logger = logging.getLogger('STDERR')
-        sl = StreamToLogger(stderr_logger, sys.stderr, stderr_loglevel)
-        sys.stderr = sl
+def initStream(logger=None, logger_level=logging.ERROR, stream_getter=None, stream_setter=None):
+    """
+    Preffered API.
+    stream_getter() is supplier/factory method that returns stream-like object (i.e. sys.stderr) that we're adapting upon.
+                   It's intended usage is to supply stream-like object that we want to apapt upon.
+    stream_setter() is consumer method that receives wrapped object as parameter.
+                   It's intended usage is to overwrite source stream-like, i.e. sys.stderr = s.
+
+    :param logger: Optional. If not supplied logging.getLogger('stderr') will be used.
+    :param logger_level: Optional. If not supplied logging.ERROR will be used.
+    :param stream_getter: Optional. if not supplied method that returns sys.stderr will be used.
+    :param stream_setter: Optional. if not supplied method that get's strema-like object and set's sys.stderr will be used.
+    :return:
+    """
+    if logger is None:
+        logger = logging.getLogger('stderr')
+
+    if stream_getter is None:
+        def stream_getter():
+            return sys.stderr
+
+    if stream_setter is None:
+        def stream_setter(s):
+            sys.stderr = s
+
+    stream = stream_getter()
+    sl = StreamToLogger(logger, stream, logger_level)
+    stream_setter(sl)
