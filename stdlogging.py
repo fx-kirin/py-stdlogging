@@ -78,5 +78,5 @@ def initStream(logger=None, logger_level=logging.ERROR, stream_getter=None, stre
             sys.stderr = s
 
     stream = stream_getter()
-    sl = StreamToLogger(logger, stream, logger_level)
+    sl = StreamToLogger(logger=logger, stream=stream, logger_level=logger_level)
     stream_setter(sl)
